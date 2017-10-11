@@ -17,16 +17,15 @@ karray = 1:n;
 C = 0.0001;
 
 % length of update messages
-msglen = 50000;
+msglen = 500;
 
 %% generate pool for experiments 
 % k out of n with feedback (true experiments in a sample pool)
 
-poolsize = msglen*n/100;
+pool_hyper = [exprnd(1/lambda1,p*msglen,n) ; exprnd(1/lambda2,(1-p)*msglen,n)];
+pool_hyper = pool_hyper(randperm(msglen),:);
 
-pool_hyper = [exprnd(1/lambda1,p*length(karray)*msglen,1) ; exprnd(1/lambda2,(1-p)*length(karray)*msglen,1)];
-
-pool_exp = exprnd(1/lambda,length(karray)*msglen,1);
+pool_exp = exprnd(1/lambda,msglen,n);
 
 % pool for pareto distribution with pscale \gamma and pshape \alpha
 pscale = 1;
@@ -35,7 +34,7 @@ pshape = 1.5;
 Genpar_k = 1/pshape;
 Genpar_sigma = pscale*Genpar_k;
 Genpar_theta = pscale;
-pool_pareto = gprnd(Genpar_k,Genpar_sigma,Genpar_theta,length(karray)*msglen,1);
+pool_pareto = gprnd(Genpar_k,Genpar_sigma,Genpar_theta,msglen,n);
 
 % pool for log cauchy distribution with 
 % CauchyMu = 1;
@@ -51,7 +50,8 @@ for k = karray
     polygons = 0;
     response = 0;
     for msgind = 1:msglen
-        [n_fir, nmax_fir, suc_fir] = ext_UpdOrder(k,1,n,pool_hyper);
+        delayset = pool_hyper(msgind,:);
+        [n_fir, nmax_fir, suc_fir] = ext_UpdOrder(k,1,delayset);
         if suc_fir==0 % fail
             response = response + n_fir;
         else
@@ -74,7 +74,8 @@ for k = karray
     polygons = 0;
     response = 0;
     for msgind = 1:msglen
-        [n_fir, nmax_fir, suc_fir] = ext_UpdOrder(k,1,n,pool_exp);
+        delayset = pool_exp(msgind,:);
+        [n_fir, nmax_fir, suc_fir] = ext_UpdOrder(k,1,delayset);
         if suc_fir==0 % fail
             response = response + n_fir;
         else
@@ -96,7 +97,8 @@ for k = karray
     polygons = 0;
     response = 0;
     for msgind = 1:msglen
-        [n_fir, nmax_fir, suc_fir] = ext_UpdOrder(k,1,n,pool_pareto);
+        delayset = pool_pareto(msgind,:);
+        [n_fir, nmax_fir, suc_fir] = ext_UpdOrder(k,1,delayset);
         if suc_fir==0 % fail
             response = response + n_fir;
         else

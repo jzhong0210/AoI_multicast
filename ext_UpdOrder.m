@@ -1,14 +1,13 @@
-function [delay, delay_max, success] = ext_UpdOrder(write,read,n,pool)
+function [delay, delay_max, success] = ext_UpdOrder(write,read,delayset)
     %% soft deadline, commit after write-th receiver finishes, return the min among read number of delay
     % delay: service time of an update
     % delay_max: max service time of the write quorum
 
-    % obtain n different delay values from the pool
-    delayind = randi(length(pool),n,1);
-    delayset = pool(delayind);
+    n = length(delayset);
     
     % obtain the index of all updates in the read quorum
-    readind = randi(n,read,1);
+    % readind = randperm(n,read,1);
+    readind = 1; % save time for read==1
     % minimum of the read quorum
     delay = min(delayset(readind));
     % sort all n delays 

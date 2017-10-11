@@ -15,7 +15,7 @@ write_list = 1:n;
 C = 0.5;
 
 % number of update messages
-msglen = 10000;
+msglen = 1000;
 
 % read quorum
 read = 1;
@@ -41,7 +41,7 @@ for pshape_ind = 1:length(pshape_list)
     Genpar_k = 1/pshape;
     Genpar_sigma = pscale*Genpar_k;
     Genpar_theta = pscale;
-    pool = gprnd(Genpar_k,Genpar_sigma,Genpar_theta,length(write_list)*msglen,1);
+    pool = gprnd(Genpar_k,Genpar_sigma,Genpar_theta,msglen,n);
 
 
     for write = write_list
@@ -49,7 +49,8 @@ for pshape_ind = 1:length(pshape_list)
         polygons = 0;
         response = 0;
         for msgind = 1:msglen
-            [delay, delay_max, suc] = ext_UpdOrder(write,read,n,pool);
+            delayset = pool(msgind,:);
+            [delay, delay_max, suc] = ext_UpdOrder(write,read,delayset);
             if suc==0 % fail
                 response = response + delay;
             else

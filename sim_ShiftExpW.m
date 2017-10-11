@@ -17,7 +17,7 @@ write_list = 1:n;
 C = 1;
 
 % number of update messages
-msglen = 50000;
+msglen = 5000;
 
 % read quorum
 read = 1;
@@ -39,19 +39,21 @@ for lambda_ind = 1:length(lambda_list)
     %% preemptive multicast: true experiments obtained by a sample pool
 
     % generate the pool for transmission time
-    poolsize = n*msglen;
-    % pool = gen_update(delta,poolsize,poollen);
-    % pool = k + nbinrnd(k,1-delta,poolsize,1);
-    pool = exprnd(1/lambda,poolsize,1)+C;
-
+    pool = exprnd(1/lambda,msglen,n)+C;
 
     for write = write_list
         endpt = 0;
         polygons = 0;
         response = 0;
+        
+        endpt_s = 0;
+        polygons_s = 0;
+        response_s = 0;
+        
         for msgind = 1:msglen
-            [delay, delay_max, suc] = ext_UpdOrder(write,read,n,pool);
-%             [delay1, delay_max1, suc1] = ext_UpdOrderFix(write,read,n,pool);
+            delayset = pool(msgind,:);
+            [delay, delay_max, suc] = ext_UpdOrder(write,read,delayset);
+%             [delay1, delay_max1, suc1] = ext_UpdOrderFix(write,read,delayset)
             if suc==0 % fail
                 response = response + delay;
             else
@@ -60,7 +62,7 @@ for lambda_ind = 1:length(lambda_list)
                 endpt = endpt + response;
                 % response = nmax_fir-n_fir;
                 response = delay_max;
-            end        
+            end         
         end
         avgage(write,lambda_ind) = polygons/endpt;
     end
@@ -73,7 +75,8 @@ for lambda_ind = 1:length(lambda_list)
         polygons = 0;
         response = 0;
         for msgind = 1:msglen
-            [delay, delay_max, suc] = ext_UpdOrderFix(write,read,n,pool);
+            delayset = pool(msgind,:);
+            [delay, delay_max, suc] = ext_UpdOrderFix(write,read,delayset);
             if suc==0 % fail
                 response = response + delay;
             else
