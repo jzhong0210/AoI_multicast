@@ -30,6 +30,7 @@ avgage_fixprem = zeros(length(write_list),3);
 apprage = zeros(length(write_list),3);
 apprage_fix = zeros(length(write_list),3);
 alpha_opt = zeros(1,3);
+avgage_fr = zeros(length(write_list),3);
 
 %% examine different lambda, true experiments obtained by a sample pool
 
@@ -145,6 +146,29 @@ for lambda_ind = 1:length(lambda_list)
         avgage_fixprem(write,lambda_ind) = polygons/endpt;
     end
    
+    %% fixed redundancy scheme
+    
+    for write = write_list
+        due = C+1/lambda*(harmonic(n)-harmonic(n-write));
+        endpt = 0;
+        polygons = 0;
+        response = 0;
+        for msgind = 1:msglen
+            delay = pool(msgind,1);
+            if delay > due % fail
+                response = response + delay;
+            else
+                polygons = polygons + 1/2*((response+delay)^2-delay^2);
+                % endpt = endpt + nmax_fir;
+                endpt = endpt + response;
+                % response = nmax_fir-n_fir;
+                response = due;
+            end        
+        end
+        avgage_fr(write,lambda_ind) = polygons/endpt;
+    end
+    
+    
     %% selective multicast (select k in advance and send to k nodes)
     %{
     for write = write_list
@@ -179,6 +203,43 @@ for i = 1:3
     % selected k with free and premium group
     plot(write_list(2:2:100),avgage_fixfree(2:2:100,i),'-^','Color',color{i},'linewidth',1.5);
     plot(write_list(2:2:100),avgage_fixprem(2:2:100,i),'-v','Color',color{i},'linewidth',1.5);
+end
+
+
+xlabel('k','Fontsize',14,'FontName','Times');
+% ylabel('average age \Delta_{(w,r=50)}','Fontsize',14,'FontName','Times');
+ylabel('average age \Delta_{(k)}','Fontsize',14,'FontName','Times');
+% title(['preemption at k out of n=' num2str(m)],'Fontsize',14,'FontName','Times');
+leg = legend(l(1:3),{['\lambdac = ' num2str(lambda_list(1)*C)],['\lambdac = ' num2str(lambda_list(2)*C)],['\lambdac = ' num2str(lambda_list(3)*C)]},'location','North');
+set(leg,'Fontsize',14,'FontName','Times');
+axis([0 100 2 10]); 
+grid on; box on;
+
+figure(2);
+set(gcf,'units','pixels','position',[10,10,400,250]);
+hold on;
+% color schemes
+blue = [0 0.4470 0.7410];
+red = [0.8500 0.3250 0.0980];
+purple = [0.4940 0.1840 0.5560];
+
+color = {blue, red, purple};
+for i = 1:3
+    
+    % earliest k
+    l(i) = plot(write_list(2:2:100),avgage(2:2:100,i),'-','Color',color{i},'linewidth',1.5);    
+    plot(write_list(4:4:100),apprage(4:4:100,i),'x','Color',color{i},'linewidth',1.5);
+    plot(alpha_opt(i)*write,apprage(floor(alpha_opt(i)*write),i),'Color',color{i},'Marker','o','MarkerSize',10,'linewidth',2);
+    plot(write_list(2:2:100),avgage_fr(2:2:100,i),'-.','Color',color{i},'linewidth',1.5);
+    %{
+    % selected k
+    plot(write_list(2:2:100),avgage_fix(2:2:100,i),'-.','Color',color{i},'linewidth',1.5);
+    % plot(write_list(4:4:100),apprage_fix(4:4:100,i),'s','Color',color{i},'linewidth',1.5);
+    
+    % selected k with free and premium group
+    plot(write_list(2:2:100),avgage_fixfree(2:2:100,i),'-^','Color',color{i},'linewidth',1.5);
+    plot(write_list(2:2:100),avgage_fixprem(2:2:100,i),'-v','Color',color{i},'linewidth',1.5);
+    %}
 end
 
 
