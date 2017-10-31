@@ -17,7 +17,7 @@ write_list = 1:n;
 C = 1;
 
 % number of update messages
-msglen = 5000;
+msglen = 30000;
 
 % read quorum
 read = 1;
@@ -31,6 +31,8 @@ apprage = zeros(length(write_list),3);
 apprage_fix = zeros(length(write_list),3);
 alpha_opt = zeros(1,3);
 avgage_fr = zeros(length(write_list),3);
+apprage_fr = zeros(length(write_list),3);
+
 
 %% examine different lambda, true experiments obtained by a sample pool
 
@@ -168,7 +170,12 @@ for lambda_ind = 1:length(lambda_list)
         avgage_fr(write,lambda_ind) = polygons/endpt;
     end
     
+    for write = write_list
+        due = C+1/lambda*(harmonic(n)-harmonic(n-write));
+        apprage_fr(write,lambda_ind) = 1/(1-exp(-lambda*(due-C)))* ((lambda*due+1)*exp(-(lambda*(due-C)))/lambda - (lambda*C+1)/lambda) + ...
+            due/2* (1+exp(-lambda*(due-C)))/(1-exp(-lambda*(due-C)));
     
+    end
     %% selective multicast (select k in advance and send to k nodes)
     %{
     for write = write_list
@@ -178,7 +185,7 @@ for lambda_ind = 1:length(lambda_list)
 end
 
 
-%% generate the figure
+%% generate the figure 1
 
 figure(1)
 set(gcf,'units','pixels','position',[10,10,400,250]);
@@ -212,8 +219,10 @@ ylabel('average age \Delta_{(k)}','Fontsize',14,'FontName','Times');
 % title(['preemption at k out of n=' num2str(m)],'Fontsize',14,'FontName','Times');
 leg = legend(l(1:3),{['\lambdac = ' num2str(lambda_list(1)*C)],['\lambdac = ' num2str(lambda_list(2)*C)],['\lambdac = ' num2str(lambda_list(3)*C)]},'location','North');
 set(leg,'Fontsize',14,'FontName','Times');
-axis([0 100 2 10]); 
+axis([0 100 2 12]); 
 grid on; box on;
+
+%% generate the figure 2
 
 figure(2);
 set(gcf,'units','pixels','position',[10,10,400,250]);
@@ -222,32 +231,29 @@ hold on;
 blue = [0 0.4470 0.7410];
 red = [0.8500 0.3250 0.0980];
 purple = [0.4940 0.1840 0.5560];
-
 color = {blue, red, purple};
 for i = 1:3
-    
     % earliest k
     l(i) = plot(write_list(2:2:100),avgage(2:2:100,i),'-','Color',color{i},'linewidth',1.5);    
     plot(write_list(4:4:100),apprage(4:4:100,i),'x','Color',color{i},'linewidth',1.5);
     plot(alpha_opt(i)*write,apprage(floor(alpha_opt(i)*write),i),'Color',color{i},'Marker','o','MarkerSize',10,'linewidth',2);
-    plot(write_list(2:2:100),avgage_fr(2:2:100,i),'-.','Color',color{i},'linewidth',1.5);
-    %{
+    % fixed redundancy
+    % plot(write_list(2:2:100),avgage_fr(2:2:100,i),'-.','Color',color{i},'linewidth',1.5);
+    
     % selected k
     plot(write_list(2:2:100),avgage_fix(2:2:100,i),'-.','Color',color{i},'linewidth',1.5);
-    % plot(write_list(4:4:100),apprage_fix(4:4:100,i),'s','Color',color{i},'linewidth',1.5);
-    
+    % plot(write_list(4:4:100),apprage_fix(4:4:100,i),'s','Color',color{i},'linewidth',1.5);   
     % selected k with free and premium group
-    plot(write_list(2:2:100),avgage_fixfree(2:2:100,i),'-^','Color',color{i},'linewidth',1.5);
-    plot(write_list(2:2:100),avgage_fixprem(2:2:100,i),'-v','Color',color{i},'linewidth',1.5);
-    %}
+    % plot(write_list(2:2:100),avgage_fixfree(2:2:100,i),'-^','Color',color{i},'linewidth',1.5);
+    % plot(write_list(2:2:100),avgage_fixprem(2:2:100,i),'-v','Color',color{i},'linewidth',1.5);
+    
 end
-
 
 xlabel('k','Fontsize',14,'FontName','Times');
 % ylabel('average age \Delta_{(w,r=50)}','Fontsize',14,'FontName','Times');
 ylabel('average age \Delta_{(k)}','Fontsize',14,'FontName','Times');
 % title(['preemption at k out of n=' num2str(m)],'Fontsize',14,'FontName','Times');
-leg = legend(l(1:3),{['\lambdac = ' num2str(lambda_list(1)*C)],['\lambdac = ' num2str(lambda_list(2)*C)],['\lambdac = ' num2str(lambda_list(3)*C)]},'location','North');
+leg = legend(l(1:3),{['\lambda = ' num2str(lambda_list(1))],['\lambda = ' num2str(lambda_list(2))],['\lambda = ' num2str(lambda_list(3))]},'location','North');
 set(leg,'Fontsize',14,'FontName','Times');
-axis([0 100 2 10]); 
+axis([0 100 2 12]); 
 grid on; box on;
