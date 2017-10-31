@@ -17,7 +17,7 @@ write_list = 1:n;
 C = 1;
 
 % number of update messages
-msglen = 30000;
+msglen = 20000;
 
 % read quorum
 read = 1;
@@ -158,12 +158,10 @@ for lambda_ind = 1:length(lambda_list)
         for msgind = 1:msglen
             delay = pool(msgind,1);
             if delay > due % fail
-                response = response + delay;
+                response = response + due;
             else
                 polygons = polygons + 1/2*((response+delay)^2-delay^2);
-                % endpt = endpt + nmax_fir;
                 endpt = endpt + response;
-                % response = nmax_fir-n_fir;
                 response = due;
             end        
         end
@@ -172,7 +170,7 @@ for lambda_ind = 1:length(lambda_list)
     
     for write = write_list
         due = C+1/lambda*(harmonic(n)-harmonic(n-write));
-        apprage_fr(write,lambda_ind) = 1/(1-exp(-lambda*(due-C)))* ((lambda*due+1)*exp(-(lambda*(due-C)))/lambda - (lambda*C+1)/lambda) + ...
+        apprage_fr(write,lambda_ind) = 1/(1-exp(-lambda*(due-C)))* (C-due*exp(-lambda*(due-C))) + 1/lambda + ...
             due/2* (1+exp(-lambda*(due-C)))/(1-exp(-lambda*(due-C)));
     
     end
@@ -235,13 +233,14 @@ color = {blue, red, purple};
 for i = 1:3
     % earliest k
     l(i) = plot(write_list(2:2:100),avgage(2:2:100,i),'-','Color',color{i},'linewidth',1.5);    
-    plot(write_list(4:4:100),apprage(4:4:100,i),'x','Color',color{i},'linewidth',1.5);
+    % plot(write_list(4:4:100),apprage(4:4:100,i),'x','Color',color{i},'linewidth',1.5);
     plot(alpha_opt(i)*write,apprage(floor(alpha_opt(i)*write),i),'Color',color{i},'Marker','o','MarkerSize',10,'linewidth',2);
     % fixed redundancy
-    % plot(write_list(2:2:100),avgage_fr(2:2:100,i),'-.','Color',color{i},'linewidth',1.5);
+    plot(write_list(2:2:100),avgage_fr(2:2:100,i),'-.','Color',color{i},'linewidth',1.5);
+    plot(write_list(2:2:100),apprage_fr(2:2:100,i),'+','Color',color{i},'linewidth',1.5);
     
     % selected k
-    plot(write_list(2:2:100),avgage_fix(2:2:100,i),'-.','Color',color{i},'linewidth',1.5);
+    % plot(write_list(2:2:100),avgage_fix(2:2:100,i),'-.','Color',color{i},'linewidth',1.5);
     % plot(write_list(4:4:100),apprage_fix(4:4:100,i),'s','Color',color{i},'linewidth',1.5);   
     % selected k with free and premium group
     % plot(write_list(2:2:100),avgage_fixfree(2:2:100,i),'-^','Color',color{i},'linewidth',1.5);
@@ -255,5 +254,5 @@ ylabel('average age \Delta_{(k)}','Fontsize',14,'FontName','Times');
 % title(['preemption at k out of n=' num2str(m)],'Fontsize',14,'FontName','Times');
 leg = legend(l(1:3),{['\lambda = ' num2str(lambda_list(1))],['\lambda = ' num2str(lambda_list(2))],['\lambda = ' num2str(lambda_list(3))]},'location','North');
 set(leg,'Fontsize',14,'FontName','Times');
-axis([0 100 2 12]); 
+axis([0 100 2 10]); 
 grid on; box on;
